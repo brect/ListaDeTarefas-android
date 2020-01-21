@@ -1,6 +1,7 @@
 package com.blimas.listadetarefas.activity;
 
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -8,9 +9,11 @@ import com.blimas.listadetarefas.R;
 import com.blimas.listadetarefas.adapter.TarefaAdapter;
 import com.blimas.listadetarefas.helper.DbHelper;
 import com.blimas.listadetarefas.helper.RecyclerItemClickListener;
+import com.blimas.listadetarefas.helper.TarefaDAO;
 import com.blimas.listadetarefas.model.Tarefa;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -22,15 +25,17 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerViewlistaTarefas;
+    private RecyclerView recyclerView;
     private List<Tarefa> listaTarefas = new ArrayList<>();
     private TarefaAdapter tarefaAdapter;
+    Tarefa tarefaEscolhida;
 
 
     @Override
@@ -41,31 +46,64 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
 
-        recyclerViewlistaTarefas = findViewById(R.id.recyclerListaTarefas);
+        recyclerView = findViewById(R.id.recyclerListaTarefas);
 
-        //Adicionar evento de click
-        recyclerViewlistaTarefas.addOnItemTouchListener((
-            new RecyclerItemClickListener(
-                    getApplicationContext(),
-                    new RecyclerItemClickListener.OnItemClickListener(){
+        //Adicionar evento de clique
+        recyclerView.addOnItemTouchListener(
+                new RecyclerItemClickListener(
+                        getApplicationContext(),
+                        recyclerView,
+                        new RecyclerItemClickListener.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        //recupera tarefa para edicao
+                        tarefaEscolhida = listaTarefas.get(position);
 
-                        @Override
-                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        //Envia tarefa para adicionar tarefa
+                        Intent intent = new Intent(MainActivity.this, AdicionarTarefaActivity.class);
+                        intent.putExtra("tarefaEscolhida", tarefaEscolhida);
 
-                        }
-
-                        @Override
-                        public void onItemClick(View view, int position) {
-
-                        }
-
-                        @Override
-                        public void onLongItemClick(View view, int position) {
-
-                        }
+                        startActivity(intent);
                     }
-                )
-            ));
+
+                    @Override
+                    public void onLongItemClick(View view, int position) {
+
+                        tarefaEscolhida = listaTarefas.get(position);
+
+                        AlertDialog.Builder dialogo = new AlertDialog.Builder(MainActivity.this);
+
+                        //Configura titulo do dialogo
+                        dialogo.setTitle("Confirma exclusão");
+                        dialogo.setMessage("Deseja excluir a tarefa " + tarefaEscolhida.getNomeTarefa() + " ?");
+
+                        //configura botoes
+                        dialogo.setPositiveButton("Sim", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                TarefaDAO tarefaDAO = new TarefaDAO(getApplicationContext());
+
+                                if (tarefaDAO.deletar(tarefaEscolhida)){
+                                    carregarListaTarefas();
+                                    Toast.makeText(getApplicationContext(), "Sucesso ao deletar a Tarefa", Toast.LENGTH_SHORT).show();
+                                }else {
+                                    Toast.makeText(getApplicationContext(), "Erro ao deletar a Tarefa", Toast.LENGTH_SHORT).show();
+                                }
+
+                            }
+                        });
+
+                        //cria exibição do dialog
+                        dialogo.setNegativeButton("Não", null);
+                        dialogo.create().show();
+                    }
+
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                    }
+                }));
 
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -81,22 +119,19 @@ public class MainActivity extends AppCompatActivity {
 
     public void carregarListaTarefas(){
         //listar tarefas
-//        Tarefa tarefa1 = new Tarefa();
-//        tarefa1.setNomeTarefa("Xurupita");
-//        listaTarefas.add(tarefa1);
-//        Tarefa tarefa2 = new Tarefa();
-//        tarefa1.setNomeTarefa("Xurupita Xurupita");
-//        listaTarefas.add(tarefa2);
+        TarefaDAO tarefaDAO = new TarefaDAO(getApplicationContext());
+
+        listaTarefas = tarefaDAO.listar();
 
         //configura adapter
         tarefaAdapter = new TarefaAdapter(listaTarefas);
 
         //configura recyclerView
         LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerViewlistaTarefas.setLayoutManager(layoutManager);
-        recyclerViewlistaTarefas.setHasFixedSize(true);
-        recyclerViewlistaTarefas.addItemDecoration(new DividerItemDecoration(getApplicationContext(), LinearLayout.VERTICAL));
-        recyclerViewlistaTarefas.setAdapter(tarefaAdapter);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), LinearLayout.VERTICAL));
+        recyclerView.setAdapter(tarefaAdapter);
 
     }
 

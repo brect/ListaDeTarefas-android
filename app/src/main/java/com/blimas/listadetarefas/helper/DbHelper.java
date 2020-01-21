@@ -13,7 +13,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public static String NOME_DB = "DB_TAREFAS";
     public static String TABELA_TAREFAS = "tarefas";
 
-    public DbHelper(@Nullable Context context) {
+    public DbHelper(Context context) {
         super(context, NOME_DB, null, VERSION);
     }
 
