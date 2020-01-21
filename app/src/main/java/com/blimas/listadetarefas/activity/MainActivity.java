@@ -1,10 +1,13 @@
 package com.blimas.listadetarefas.activity;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.os.Bundle;
 
 import com.blimas.listadetarefas.R;
 import com.blimas.listadetarefas.adapter.TarefaAdapter;
+import com.blimas.listadetarefas.helper.DbHelper;
+import com.blimas.listadetarefas.helper.RecyclerItemClickListener;
 import com.blimas.listadetarefas.model.Tarefa;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
@@ -17,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 import android.widget.LinearLayout;
 
 import java.util.ArrayList;
@@ -25,8 +29,9 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerViewlistaTarefas;
-    private TarefaAdapter terefaAdapter;
     private List<Tarefa> listaTarefas = new ArrayList<>();
+    private TarefaAdapter tarefaAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +42,30 @@ public class MainActivity extends AppCompatActivity {
 
 
         recyclerViewlistaTarefas = findViewById(R.id.recyclerListaTarefas);
+
+        //Adicionar evento de click
+        recyclerViewlistaTarefas.addOnItemTouchListener((
+            new RecyclerItemClickListener(
+                    getApplicationContext(),
+                    new RecyclerItemClickListener.OnItemClickListener(){
+
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                        }
+
+                        @Override
+                        public void onItemClick(View view, int position) {
+
+                        }
+
+                        @Override
+                        public void onLongItemClick(View view, int position) {
+
+                        }
+                    }
+                )
+            ));
 
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -52,22 +81,29 @@ public class MainActivity extends AppCompatActivity {
 
     public void carregarListaTarefas(){
         //listar tarefas
-        Tarefa tarefa1 = new Tarefa();
-        tarefa1.setNomeTarefa("Xurupita");
-        listaTarefas.add(tarefa1);
-        Tarefa tarefa2 = new Tarefa();
-        tarefa1.setNomeTarefa("Xurupita Xurupita");
-        listaTarefas.add(tarefa2);
+//        Tarefa tarefa1 = new Tarefa();
+//        tarefa1.setNomeTarefa("Xurupita");
+//        listaTarefas.add(tarefa1);
+//        Tarefa tarefa2 = new Tarefa();
+//        tarefa1.setNomeTarefa("Xurupita Xurupita");
+//        listaTarefas.add(tarefa2);
 
         //configura adapter
-        terefaAdapter = new TarefaAdapter(listaTarefas);
+        tarefaAdapter = new TarefaAdapter(listaTarefas);
 
         //configura recyclerView
         LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerViewlistaTarefas.setLayoutManager(layoutManager);
         recyclerViewlistaTarefas.setHasFixedSize(true);
         recyclerViewlistaTarefas.addItemDecoration(new DividerItemDecoration(getApplicationContext(), LinearLayout.VERTICAL));
+        recyclerViewlistaTarefas.setAdapter(tarefaAdapter);
 
+    }
+
+    @Override
+    protected void onStart() {
+                carregarListaTarefas();
+        super.onStart();
     }
 
     @Override
